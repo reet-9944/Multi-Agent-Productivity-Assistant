@@ -1,19 +1,30 @@
 from fastapi import APIRouter
+from agents.main_agent import MainAgent
 
 router = APIRouter()
 
-@router.get("/")
-def home():
-    return {"message": "API working"}
+agent = MainAgent()
+
+@router.post("/add-task")
+def add_task(task:str):
+    return agent.handle("add_task",task)
 
 @router.get("/tasks")
-def get_tasks():
-    return {"tasks": []}
+def tasks():
+    return agent.handle("list_tasks",None)
+
+@router.post("/add-note")
+def add_note(note:str):
+    return agent.handle("add_note",note)
 
 @router.get("/notes")
-def get_notes():
-    return {"notes": []}
+def notes():
+    return agent.handle("list_notes",None)
+
+@router.post("/add-event")
+def add_event(title:str,date:str):
+    return agent.handle("add_event",(title,date))
 
 @router.get("/events")
-def get_events():
-    return {"events": []}
+def events():
+    return agent.handle("list_events",None)

@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 from agents.main_agent import MainAgent
+from agents.weather_agent import weather_agent
+from agents.knowledge_agent import store_note, fetch_notes
 
 router = APIRouter()
 
@@ -28,3 +30,15 @@ def add_event(title:str,date:str):
 @router.get("/events")
 def events():
     return agent.handle("list_events",None)
+
+@router.get("/weather")
+def weather(city: str):
+    return {"weather": weather_agent(city)}
+
+@router.post("/add-knowledge")
+def add_knowledge(note: str):
+    return {"message": store_note(note)}
+
+@router.get("/knowledge")
+def get_knowledge():
+    return {"data": fetch_notes()}

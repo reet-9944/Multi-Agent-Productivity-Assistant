@@ -18,16 +18,31 @@ Main Agent coordinates multiple sub-agents:
 
 Each agent interacts with dedicated tools and database storage.
 
-Project Structure:
+## Project Structure
 
+```
 multi-agent-productivity-assistant/
 │
-├── agents
-├── api
-├── database
-├── tools
+├── agents/
+│   ├── main_agent.py
+│   ├── task_agent.py
+│   ├── notes_agent.py
+│   └── calendar_agent.py
+│
+├── api/
+│   └── routes.py
+│
+├── database/
+│   └── db.py
+│
+├── tools/
+│   ├── task_tool.py
+│   ├── notes_tool.py
+│   └── calendar_tool.py
+│
 ├── main.py
 └── requirements.txt
+```
 
 ## Tech Stack
 

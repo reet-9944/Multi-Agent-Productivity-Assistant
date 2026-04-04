@@ -1,0 +1,57 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Knowledge — NEXUS</title><link rel="stylesheet" href="../assets/css/global.css">
+<style>
+.kl{display:grid;grid-template-columns:300px 1fr;gap:18px;}
+.ki{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:14px 16px;margin-bottom:9px;transition:var(--tr);animation:fadeUp .3s ease;position:relative;overflow:hidden;}
+.ki:hover{border-color:var(--b2);}
+.ki::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,var(--blue),var(--teal));}
+@media(max-width:900px){.kl{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar"><span class="topbar-title">Knowledge</span></div>
+<div class="page-content" id="pc">
+  <div style="margin-bottom:18px;"><h1 style="font-size:1.4rem;margin-bottom:3px;">Knowledge Base</h1><p>Store and retrieve with full-text search.</p></div>
+  <div class="kl">
+    <div>
+      <div class="card" style="position:sticky;top:14px;">
+        <h3 style="font-size:.95rem;margin-bottom:16px;">Store knowledge</h3>
+        <form onsubmit="addKB(event)" style="display:flex;flex-direction:column;gap:12px;">
+          <div class="input-group"><label class="lbl">Topic *</label><input class="inp" id="kt" placeholder="Topic or title..." required></div>
+          <div class="input-group"><label class="lbl">Knowledge *</label><textarea class="inp" id="kc" placeholder="What to remember?" style="min-height:96px;" required></textarea></div>
+          <div class="input-group"><label class="lbl">Category</label><input class="inp" id="kcat" placeholder="Tech, Science, Business..."></div>
+          <div class="input-group"><label class="lbl">Tags</label><input class="inp" id="ktg" placeholder="react, api, hackathon"></div>
+          <div class="input-group"><label class="lbl">Source URL</label><input class="inp" id="ksrc" placeholder="https://" type="url"></div>
+          <button type="submit" class="btn btn-primary w-full">◉ Store knowledge</button>
+        </form>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;gap:9px;margin-bottom:14px;align-items:center;">
+        <input class="inp" id="ksrch" placeholder="🔍 Search knowledge..." style="flex:1;" oninput="searchKB(this.value)">
+        <span id="kc-count" style="font-family:var(--mono);font-size:.72rem;color:var(--t3);white-space:nowrap;">0 items</span>
+      </div>
+      <div id="kl"><div class="skel" style="height:70px;border-radius:9px;margin-bottom:9px;"></div></div>
+    </div>
+  </div>
+</div>
+<script src="../assets/js/shared.js"></script><script src="../assets/js/appshell.js"></script>
+<script>
+if (!needAuth()) {}
+else {
+  buildAppShell('knowledge');
+  const am=document.querySelector('.app-main'); am.prepend(document.getElementById('topbar')); am.appendChild(document.getElementById('pc'));
+  let items=[];
+  async function load(q=''){try{const d=await api('/knowledge'+(q?`?search=${encodeURIComponent(q)}`:''));items=d.data;}catch{items=[];}render();}
+  let dt;
+  function searchKB(q){clearTimeout(dt);dt=setTimeout(()=>load(q),350);}
+  function render(){
+    document.getElementById('kc-count').textContent=items.length+' items';
+    if(!items.length){document.getElementById('kl').innerHTML='<div class="empty"><div class="empty-ic">◉</div><h3>Nothing stored yet</h3><p>Start building your knowledge base</p></div>';return;}
+    document.getElementById('kl').innerHTML=items.map(item=>`<div class="ki"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;"><div style="font-size:.88rem;font-weight:700;">${item.title}</div><button onclick="delKB('${item._id}')" class="btn-icon" style="width:25px;height:25px;font-size:10px;margin-left:8px;flex-shrink:0;color:var(--rose);border-color:rgba(224,107,107,.2);">🗑</button></div><div style="font-size:.8rem;color:var(--t2);line-height:1.6;margin-bottom:9px;">${item.content}</div><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">${item.category?`<span class="badge b-lav">${item.category}</span>`:''}${(item.tags||[]).map(t=>`<span style="font-family:var(--mono);font-size:.63rem;background:rgba(77,124,254,.08);border:1px solid rgba(77,124,254,.15);border-radius:4px;padding:1px 7px;color:var(--blue-l);">${t}</span>`).join('')}${item.source?`<a href="${item.source}" target="_blank" style="font-size:.68rem;color:var(--teal-l);font-family:var(--mono);margin-left:auto;">🔗</a>`:''}<span style="font-family:var(--mono);font-size:.64rem;color:var(--t4);${!item.source?'margin-left:auto;':''}">${timeAgo(item.createdAt)}</span></div></div>`).join('');
+  }
+  async function addKB(e){e.preventDefault();const p={title:document.getElementById('kt').value.trim(),content:document.getElementById('kc').value.trim(),category:document.getElementById('kcat').value.trim(),tags:document.getElementById('ktg').value.split(',').map(t=>t.trim()).filter(Boolean),source:document.getElementById('ksrc').value.trim()};try{const d=await api('/knowledge',{method:'POST',body:JSON.stringify(p)});items.unshift(d.data);render();['kt','kc','kcat','ktg','ksrc'].forEach(id=>document.getElementById(id).value='');toast('Knowledge stored! ◉');}catch(ex){toast(ex.message,'err');}}
+  async function delKB(id){if(!confirm('Delete?'))return;try{await api(`/knowledge/${id}`,{method:'DELETE'});items=items.filter(x=>x._id!==id);render();toast('Deleted');}catch(ex){toast(ex.message,'err');}}
+  load();
+}
+</script>
+</body></html>

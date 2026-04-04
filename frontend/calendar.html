@@ -1,0 +1,66 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Calendar — NEXUS</title><link rel="stylesheet" href="../assets/css/global.css">
+<style>
+.cl{display:grid;grid-template-columns:300px 1fr;gap:18px;}
+.ec{display:flex;gap:12px;padding:13px 15px;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);margin-bottom:8px;transition:var(--tr);animation:fadeUp .3s ease;}
+.ec:hover{border-color:var(--b2);}
+.edb{width:46px;height:46px;border-radius:8px;border:1px solid var(--b2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;background:var(--bg3);}
+.eday{font-size:1rem;font-weight:800;font-family:var(--mono);color:var(--blue-l);line-height:1;}
+.emon{font-size:.58rem;color:var(--t3);font-family:var(--mono);text-transform:uppercase;}
+.sec-lbl{font-family:var(--mono);font-size:.7rem;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px;padding-bottom:6px;border-bottom:1px solid var(--b1);}
+@media(max-width:900px){.cl{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar"><span class="topbar-title">Calendar</span></div>
+<div class="page-content" id="pc">
+  <div style="margin-bottom:18px;"><h1 style="font-size:1.4rem;margin-bottom:3px;">Calendar</h1><p>Schedule and track your events.</p></div>
+  <div class="cl">
+    <div>
+      <div class="card" style="position:sticky;top:14px;">
+        <h3 style="font-size:.95rem;margin-bottom:16px;">Schedule event</h3>
+        <form onsubmit="addEv(event)" style="display:flex;flex-direction:column;gap:12px;">
+          <div class="input-group"><label class="lbl">Event title *</label><input class="inp" id="et" placeholder="Meeting, deadline..." required></div>
+          <div class="input-group"><label class="lbl">Description</label><textarea class="inp" id="ed" placeholder="Details..." style="min-height:66px;"></textarea></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+            <div class="input-group"><label class="lbl">Date *</label><input class="inp" id="edt" type="date" required></div>
+            <div class="input-group"><label class="lbl">Time</label><input class="inp" id="etm" type="time"></div>
+          </div>
+          <div class="input-group"><label class="lbl">Location</label><input class="inp" id="eloc" placeholder="Online, Office..."></div>
+          <button type="submit" class="btn btn-primary w-full">+ Schedule event</button>
+        </form>
+        <div style="margin-top:18px;padding:13px;background:var(--bg3);border:1px solid var(--b1);border-radius:var(--r);">
+          <div style="font-family:var(--mono);font-size:.68rem;color:var(--t4);margin-bottom:5px;">TODAY</div>
+          <div style="font-size:1.7rem;font-weight:800;font-family:var(--mono);color:var(--blue-l);line-height:1;" id="td-day"></div>
+          <div style="font-size:.82rem;color:var(--t2);margin-top:3px;" id="td-full"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="sec-lbl">UPCOMING</div><div id="upc"></div>
+      <div class="sec-lbl" style="margin-top:20px;">PAST</div><div id="pst"></div>
+    </div>
+  </div>
+</div>
+<script src="../assets/js/shared.js"></script><script src="../assets/js/appshell.js"></script>
+<script>
+if (!needAuth()) {}
+else {
+  buildAppShell('calendar');
+  const am=document.querySelector('.app-main'); am.prepend(document.getElementById('topbar')); am.appendChild(document.getElementById('pc'));
+  const now=new Date();
+  document.getElementById('td-day').textContent=now.getDate();
+  document.getElementById('td-full').textContent=now.toLocaleDateString('en-GB',{weekday:'long',month:'long',year:'numeric'});
+  let evs=[];
+  async function load(){try{const d=await api('/events');evs=d.data;}catch{evs=[];}render();}
+  function ecHTML(ev,past=false){const d=new Date(ev.date);return`<div class="ec" style="${past?'opacity:.5;':''}"><div class="edb"><div class="eday">${d.getDate()}</div><div class="emon">${d.toLocaleDateString('en',{month:'short'})}</div></div><div style="flex:1;"><div style="font-size:.88rem;font-weight:600;">${ev.title}</div>${ev.description?`<div style="font-size:.76rem;color:var(--t3);margin-top:2px;">${ev.description}</div>`:''}<div style="display:flex;gap:10px;margin-top:4px;flex-wrap:wrap;">${ev.time?`<span style="font-family:var(--mono);font-size:.7rem;color:var(--t3);">🕐 ${ev.time}</span>`:''}${ev.location?`<span style="font-family:var(--mono);font-size:.7rem;color:var(--t3);">📍 ${ev.location}</span>`:''}</div></div>${!past?`<button onclick="delEv('${ev._id}')" class="btn-icon" style="width:27px;height:27px;font-size:11px;align-self:flex-start;color:var(--rose);border-color:rgba(224,107,107,.2);">🗑</button>`:''}</div>`;}
+  function render(){
+    const up=evs.filter(e=>new Date(e.date)>=now),ps=evs.filter(e=>new Date(e.date)<now).slice(-4).reverse();
+    document.getElementById('upc').innerHTML=up.length?up.map(e=>ecHTML(e)).join(''):'<div class="empty" style="padding:24px 0;"><div class="empty-ic">◷</div><h3>No upcoming events</h3></div>';
+    document.getElementById('pst').innerHTML=ps.length?ps.map(e=>ecHTML(e,true)).join(''):'<div style="font-size:.78rem;color:var(--t4);font-family:var(--mono);padding:10px 0;">No past events</div>';
+  }
+  async function addEv(e){e.preventDefault();const p={title:document.getElementById('et').value.trim(),description:document.getElementById('ed').value.trim(),date:document.getElementById('edt').value,time:document.getElementById('etm').value,location:document.getElementById('eloc').value.trim()};try{const d=await api('/events',{method:'POST',body:JSON.stringify(p)});evs.push(d.data);evs.sort((a,b)=>new Date(a.date)-new Date(b.date));render();['et','ed','etm','eloc'].forEach(id=>document.getElementById(id).value='');document.getElementById('edt').value='';toast('Event scheduled! 📅');}catch(ex){toast(ex.message,'err');}}
+  async function delEv(id){if(!confirm('Delete?'))return;try{await api(`/events/${id}`,{method:'DELETE'});evs=evs.filter(e=>e._id!==id);render();toast('Deleted');}catch(ex){toast(ex.message,'err');}}
+  load();
+}
+</script>
+</body></html>

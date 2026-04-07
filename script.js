@@ -348,3 +348,36 @@ for(let i=0;i<15;i++){
 
 console.log('%cNEXUS AI — Multi-Agent Productivity','color:#00d4ff;font-size:18px;font-weight:bold;font-family:monospace;');
 console.log('%c6 Agents Online ● Gemini Powered ● FastAPI Backend','color:#a855f7;font-family:monospace;');
+
+// ── Auth Modal ────────────────────────────────────────────────────────────────
+function openModal(type) {
+  document.getElementById('auth-modal').classList.add('open');
+  switchModal(type);
+}
+function closeModal() {
+  document.getElementById('auth-modal').classList.remove('open');
+}
+function closeModalOutside(e) {
+  if (e.target.id === 'auth-modal') closeModal();
+}
+function switchModal(type) {
+  document.getElementById('modal-signin').style.display = type === 'signin' ? 'block' : 'none';
+  document.getElementById('modal-signup').style.display = type === 'signup' ? 'block' : 'none';
+}
+function handleSignIn() {
+  const email = document.getElementById('signin-email').value.trim();
+  const pass  = document.getElementById('signin-password').value.trim();
+  if (!email || !pass) { showToast('⚠️', 'Please fill in all fields'); return; }
+  closeModal();
+  showToast('✅', `Welcome back, ${email.split('@')[0]}!`);
+}
+function handleSignUp() {
+  const name  = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const pass  = document.getElementById('signup-password').value.trim();
+  if (!name || !email || !pass) { showToast('⚠️', 'Please fill in all fields'); return; }
+  closeModal();
+  showToast('🚀', `Account created! Welcome, ${name}!`);
+}
+// Close modal on Escape key
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });

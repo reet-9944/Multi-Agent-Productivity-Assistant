@@ -40,12 +40,15 @@
       <div class="modal-sub">Sign in to your account</div>
       <div class="input-group">
         <label class="input-label">Email</label>
-        <input class="input-field" type="email" placeholder="you@example.com" id="signin-email">
+        <input class="input-field" type="text" placeholder="you@example.com" id="signin-email" oninput="clearErr('signin-email-err')">
+        <span class="field-err" id="signin-email-err"></span>
       </div>
       <div class="input-group">
         <label class="input-label">Password</label>
-        <input class="input-field" type="password" placeholder="••••••••" id="signin-password">
+        <input class="input-field" type="password" placeholder="Min. 6 characters" id="signin-password" oninput="clearErr('signin-pass-err')">
+        <span class="field-err" id="signin-pass-err"></span>
       </div>
+      <span class="field-err form-err" id="signin-form-err"></span>
       <button class="btn-submit" onclick="handleSignIn()">Sign In →</button>
       <div class="modal-switch">Don't have an account? <span onclick="switchModal('signup')">Sign Up</span></div>
     </div>
@@ -57,15 +60,18 @@
       <div class="modal-sub">Start your AI productivity journey</div>
       <div class="input-group">
         <label class="input-label">Full Name</label>
-        <input class="input-field" type="text" placeholder="Your name" id="signup-name">
+        <input class="input-field" type="text" placeholder="Your name" id="signup-name" oninput="clearErr('signup-name-err')">
+        <span class="field-err" id="signup-name-err"></span>
       </div>
       <div class="input-group">
         <label class="input-label">Email</label>
-        <input class="input-field" type="email" placeholder="you@example.com" id="signup-email">
+        <input class="input-field" type="text" placeholder="you@example.com" id="signup-email" oninput="clearErr('signup-email-err')">
+        <span class="field-err" id="signup-email-err"></span>
       </div>
       <div class="input-group">
         <label class="input-label">Password</label>
-        <input class="input-field" type="password" placeholder="••••••••" id="signup-password">
+        <input class="input-field" type="password" placeholder="Min. 6 characters" id="signup-password" oninput="clearErr('signup-pass-err')">
+        <span class="field-err" id="signup-pass-err"></span>
       </div>
       <button class="btn-submit" onclick="handleSignUp()">Create Account →</button>
       <div class="modal-switch">Already have an account? <span onclick="switchModal('signin')">Sign In</span></div>

@@ -183,6 +183,18 @@ nav {
 .modal-switch span { color: var(--cyan); cursor: none; }
 .modal-switch span:hover { text-decoration: underline; }
 
+/* field errors */
+.field-err {
+  display: block; font-size: 11px; color: var(--pink);
+  font-family: var(--font-mono); margin-top: 5px;
+  min-height: 14px; letter-spacing: 0.5px;
+}
+.form-err {
+  display: block; text-align: center; margin-bottom: 8px;
+  font-size: 12px;
+}
+.input-field.error { border-color: var(--pink); box-shadow: 0 0 0 3px rgba(255,45,120,0.1); }
+
 /* HERO */
 #hero {
   position: relative;

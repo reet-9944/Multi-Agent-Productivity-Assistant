@@ -350,12 +350,18 @@ console.log('%cNEXUS AI — Multi-Agent Productivity','color:#00d4ff;font-size:1
 console.log('%c6 Agents Online ● Gemini Powered ● FastAPI Backend','color:#a855f7;font-family:monospace;');
 
 // ── Auth Modal ────────────────────────────────────────────────────────────────
+// Simple in-memory user store (persisted to localStorage)
+const users = JSON.parse(localStorage.getItem('nexus_users') || '[]');
+
+function saveUsers() { localStorage.setItem('nexus_users', JSON.stringify(users)); }
+
 function openModal(type) {
   document.getElementById('auth-modal').classList.add('open');
   switchModal(type);
 }
 function closeModal() {
   document.getElementById('auth-modal').classList.remove('open');
+  clearAllErrors();
 }
 function closeModalOutside(e) {
   if (e.target.id === 'auth-modal') closeModal();
@@ -363,21 +369,116 @@ function closeModalOutside(e) {
 function switchModal(type) {
   document.getElementById('modal-signin').style.display = type === 'signin' ? 'block' : 'none';
   document.getElementById('modal-signup').style.display = type === 'signup' ? 'block' : 'none';
+  clearAllErrors();
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = msg;
+}
+function clearErr(id) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = '';
+  // also remove red border from sibling input
+  const input = el && el.previousElementSibling;
+  if (input) input.classList.remove('error');
+}
+function clearAllErrors() {
+  ['signin-email-err','signin-pass-err','signin-form-err',
+   'signup-name-err','signup-email-err','signup-pass-err'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '';
+  });
+  document.querySelectorAll('.input-field').forEach(el => el.classList.remove('error'));
+}
+function markError(inputId, errId, msg) {
+  const input = document.getElementById(inputId);
+  if (input) input.classList.add('error');
+  showErr(errId, msg);
+}
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+// ── Sign In ───────────────────────────────────────────────────────────────────
 function handleSignIn() {
+  clearAllErrors();
   const email = document.getElementById('signin-email').value.trim();
-  const pass  = document.getElementById('signin-password').value.trim();
-  if (!email || !pass) { showToast('⚠️', 'Please fill in all fields'); return; }
+  const pass  = document.getElementById('signin-password').value;
+  let valid = true;
+
+  if (!email) {
+    markError('signin-email', 'signin-email-err', 'Email is required.');
+    valid = false;
+  } else if (!isValidEmail(email)) {
+    markError('signin-email', 'signin-email-err', 'Invalid email — must contain @ and a domain.');
+    valid = false;
+  }
+
+  if (!pass) {
+    markError('signin-password', 'signin-pass-err', 'Password is required.');
+    valid = false;
+  } else if (pass.length < 6) {
+    markError('signin-password', 'signin-pass-err', 'Password must be at least 6 characters.');
+    valid = false;
+  }
+
+  if (!valid) return;
+
+  const user = users.find(u => u.email === email.toLowerCase());
+  if (!user) {
+    markError('signin-email', 'signin-email-err', 'No account found with this email.');
+    showErr('signin-form-err', '');
+    return;
+  }
+  if (user.password !== pass) {
+    markError('signin-password', 'signin-pass-err', 'Incorrect password.');
+    return;
+  }
+
   closeModal();
-  showToast('✅', `Welcome back, ${email.split('@')[0]}!`);
+  showToast('✅', `Welcome back, ${user.name}!`);
 }
+
+// ── Sign Up ───────────────────────────────────────────────────────────────────
 function handleSignUp() {
+  clearAllErrors();
   const name  = document.getElementById('signup-name').value.trim();
   const email = document.getElementById('signup-email').value.trim();
-  const pass  = document.getElementById('signup-password').value.trim();
-  if (!name || !email || !pass) { showToast('⚠️', 'Please fill in all fields'); return; }
+  const pass  = document.getElementById('signup-password').value;
+  let valid = true;
+
+  if (!name) {
+    markError('signup-name', 'signup-name-err', 'Full name is required.');
+    valid = false;
+  }
+
+  if (!email) {
+    markError('signup-email', 'signup-email-err', 'Email is required.');
+    valid = false;
+  } else if (!isValidEmail(email)) {
+    markError('signup-email', 'signup-email-err', 'Invalid email — must contain @ and a domain.');
+    valid = false;
+  } else if (users.find(u => u.email === email.toLowerCase())) {
+    markError('signup-email', 'signup-email-err', 'An account with this email already exists.');
+    valid = false;
+  }
+
+  if (!pass) {
+    markError('signup-password', 'signup-pass-err', 'Password is required.');
+    valid = false;
+  } else if (pass.length < 6) {
+    markError('signup-password', 'signup-pass-err', 'Password must be at least 6 characters.');
+    valid = false;
+  }
+
+  if (!valid) return;
+
+  users.push({ name, email: email.toLowerCase(), password: pass });
+  saveUsers();
   closeModal();
   showToast('🚀', `Account created! Welcome, ${name}!`);
 }
-// Close modal on Escape key
+
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });

@@ -1,4 +1,3 @@
-// ── State ─────────────────────────────────────────────────────────────────────
 const state = {
   tasks: [
     { id:1, name:'Complete AI integration', priority:'high', due:'2026-04-20', done:false },
@@ -21,7 +20,6 @@ const state = {
   ],
 };
 
-// ── Cursor ────────────────────────────────────────────────────────────────────
 const cursor = document.getElementById('cursor');
 const cursorRing = document.getElementById('cursor-ring');
 let mx=0,my=0,rx=0,ry=0;
@@ -35,7 +33,6 @@ document.addEventListener('mousemove', e => {
   requestAnimationFrame(animRing);
 })();
 
-// ── Three.js Hero ─────────────────────────────────────────────────────────────
 (function(){
   const canvas = document.getElementById('three-canvas');
   const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
@@ -87,7 +84,6 @@ document.addEventListener('mousemove', e => {
   })();
 })();
 
-// ── Features ──────────────────────────────────────────────────────────────────
 const features = [
   { icon:'🤖', color:'rgba(0,212,255,0.15)', title:'Task Agent', desc:'Intelligent task creation, prioritization, and tracking. Never miss a deadline with AI-powered reminders.', tag:'POST /add-task' },
   { icon:'📝', color:'rgba(124,58,237,0.15)', title:'Notes Agent', desc:'Capture, organize, and retrieve notes with semantic search. Your second brain, powered by AI.', tag:'POST /add-note' },
@@ -103,7 +99,6 @@ features.forEach((f,i)=>{
   fg.appendChild(el);
 });
 
-// ── Agent Pills ───────────────────────────────────────────────────────────────
 [{name:'Task Agent',color:'#00d4ff'},{name:'Notes Agent',color:'#a855f7'},{name:'Calendar Agent',color:'#00ff9d'},
  {name:'Knowledge Agent',color:'#ff6b35'},{name:'Weather Agent',color:'#ffd700'},{name:'Router Agent',color:'#ff2d78'}]
 .forEach(p=>{
@@ -112,7 +107,6 @@ features.forEach((f,i)=>{
   document.getElementById('agent-pills').appendChild(el);
 });
 
-// ── Stats Counter ─────────────────────────────────────────────────────────────
 function animateCounter(el,target,suffix=''){
   let v=0; const step=target/60;
   const iv=setInterval(()=>{ v=Math.min(v+step,target); el.textContent=Math.floor(v)+suffix; if(v>=target)clearInterval(iv); },25);
@@ -128,7 +122,6 @@ new IntersectionObserver(entries=>{
   });
 },{threshold:0.3}).observe(document.getElementById('stats'));
 
-// ── Chat ──────────────────────────────────────────────────────────────────────
 const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
 
@@ -143,7 +136,6 @@ function showTyping(){
   chatMessages.appendChild(t); chatMessages.scrollTop=chatMessages.scrollHeight; return t;
 }
 
-// Local fallback when backend is not available
 function processCommandLocal(cmd){
   const c=cmd.toLowerCase().trim();
   if(c.startsWith('add task ')){
@@ -202,17 +194,14 @@ async function refreshState(){
 document.getElementById('chat-send').addEventListener('click',sendChat);
 chatInput.addEventListener('keypress',e=>{ if(e.key==='Enter') sendChat(); });
 
-// Initial messages
 [{role:'ai',text:'Hello! I\'m NEXUS, your multi-agent AI assistant. 6 specialized agents are ready.',delay:0},
  {role:'user',text:'add task review project proposal',delay:800},
  {role:'ai',text:`✅ Task added: "Review project proposal" — Medium priority. ${state.tasks.length} total tasks.`,delay:1600}]
 .forEach(m=>setTimeout(()=>addMessage(m.role,m.text),m.delay));
 
-// ── Dashboard ─────────────────────────────────────────────────────────────────
 function buildDashboard(){
   const grid=document.getElementById('dashboard-grid'); grid.innerHTML='';
   const active=state.tasks.filter(t=>!t.done).length;
-  // Featured: Tasks
   const tc=document.createElement('div'); tc.className='dash-card featured';
   tc.innerHTML=`<div class="dash-card-label"><span>TASKS OVERVIEW</span><span style="color:var(--green)">● LIVE</span></div>
     <div class="dash-stat cyan">${active}</div>
@@ -223,22 +212,18 @@ function buildDashboard(){
         <span style="font-size:13px;${t.done?'text-decoration:line-through;color:var(--text3)':''}">${t.name}</span>
         <span class="task-pri ${t.priority==='high'?'pri-high':t.priority==='medium'?'pri-med':'pri-low'}">${t.priority.toUpperCase()}</span>
       </div>`).join('')}</div>`; grid.appendChild(tc);
-  // Notes
   const nc=document.createElement('div'); nc.className='dash-card';
   nc.innerHTML=`<div class="dash-card-label">NOTES STORED</div><div class="dash-stat purple">${state.notes.length}</div>
     <div style="color:var(--text2);font-size:13px;margin-top:8px;">Notes in base</div>
     <div class="mini-chart">${[60,45,80,55,90,70,85].map(h=>`<div class="bar" style="height:${h}%"></div>`).join('')}</div>`; grid.appendChild(nc);
-  // Events
   const ec=document.createElement('div'); ec.className='dash-card';
   ec.innerHTML=`<div class="dash-card-label">CALENDAR</div><div class="dash-stat green">${state.events.length}</div>
     <div style="color:var(--text2);font-size:13px;margin-top:8px;">Upcoming events</div>
     <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">${state.events.map(ev=>`<div style="font-size:12px;color:var(--text2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--font-mono);">📅 ${ev.title}</div>`).join('')}</div>`; grid.appendChild(ec);
-  // Weather
   const wc=document.createElement('div'); wc.className='dash-card';
   wc.innerHTML=`<div class="dash-card-label">WEATHER</div>
     <div class="weather-widget"><div class="weather-main"><div class="weather-icon">⛅</div><div><div class="weather-temp">24°C</div><div style="color:var(--text2);font-size:13px;">Partly Cloudy</div></div></div>
     <div class="weather-details"><span>💧 68%</span><span>💨 12 km/h</span><span>👁 10 km</span></div></div>`; grid.appendChild(wc);
-  // Knowledge
   const kc=document.createElement('div'); kc.className='dash-card';
   kc.innerHTML=`<div class="dash-card-label">KNOWLEDGE BASE</div>
     <div class="dash-stat" style="background:linear-gradient(135deg,var(--orange),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${state.knowledge.length}</div>
@@ -248,7 +233,6 @@ function buildDashboard(){
 function updateDashboard(){ buildDashboard(); }
 buildDashboard();
 
-// ── Tasks ─────────────────────────────────────────────────────────────────────
 function renderTasks(){
   const list=document.getElementById('tasks-list');
   document.getElementById('task-count').textContent=state.tasks.length;
@@ -278,7 +262,6 @@ function toggleTask(id){ const t=state.tasks.find(t=>t.id===id); if(t){t.done=!t
 function deleteTask(id){ state.tasks=state.tasks.filter(t=>t.id!==id); renderTasks(); updateDashboard(); showToast('🗑️','Task deleted'); }
 renderTasks();
 
-// ── Notes ─────────────────────────────────────────────────────────────────────
 function renderNotes(){
   const grid=document.getElementById('notes-grid');
   if(!state.notes.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📝</div>No notes yet.</div>`; return; }
@@ -298,7 +281,6 @@ async function addNote(){
 }
 renderNotes();
 
-// ── Knowledge ─────────────────────────────────────────────────────────────────
 function renderKnowledge(){
   const list=document.getElementById('kb-list');
   if(!state.knowledge.length){ list.innerHTML=`<div class="empty-state"><div class="empty-icon">🧠</div>Knowledge base empty.</div>`; return; }
@@ -319,7 +301,6 @@ async function addKnowledge(){
 }
 renderKnowledge();
 
-// ── Toast ─────────────────────────────────────────────────────────────────────
 function showToast(icon,msg){
   const ex=document.querySelector('.toast'); if(ex) ex.remove();
   const t=document.createElement('div'); t.className='toast';
@@ -328,17 +309,13 @@ function showToast(icon,msg){
   setTimeout(()=>{ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(()=>t.remove(),400); },3000);
 }
 
-// ── Scroll Animations ─────────────────────────────────────────────────────────
-new IntersectionObserver(entries=>{
-  entries.forEach(e=>{ if(e.isIntersecting) e.target.style.animation='fadeUp .7s ease forwards'; });
-},{threshold:0.1}).observe && document.querySelectorAll('.feature-card,.step,.dash-card').forEach(el=>{
+document.querySelectorAll('.feature-card,.step,.dash-card').forEach(el=>{
   el.style.opacity='0';
   new IntersectionObserver(entries=>{
     entries.forEach(e=>{ if(e.isIntersecting) e.target.style.animation='fadeUp .7s ease forwards'; });
   },{threshold:0.1}).observe(el);
 });
 
-// ── Floating Particles ────────────────────────────────────────────────────────
 for(let i=0;i<15;i++){
   const p=document.createElement('div'); p.className='particle';
   const size=2+Math.random()*4;
@@ -346,11 +323,6 @@ for(let i=0;i<15;i++){
   document.body.appendChild(p);
 }
 
-console.log('%cNEXUS AI — Multi-Agent Productivity','color:#00d4ff;font-size:18px;font-weight:bold;font-family:monospace;');
-console.log('%c6 Agents Online ● Gemini Powered ● FastAPI Backend','color:#a855f7;font-family:monospace;');
-
-// ── Auth Modal ────────────────────────────────────────────────────────────────
-// Simple in-memory user store (persisted to localStorage)
 const users = JSON.parse(localStorage.getItem('nexus_users') || '[]');
 
 function saveUsers() { localStorage.setItem('nexus_users', JSON.stringify(users)); }
@@ -372,7 +344,6 @@ function switchModal(type) {
   clearAllErrors();
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function showErr(id, msg) {
   const el = document.getElementById(id);
   if (el) el.textContent = msg;
@@ -380,7 +351,6 @@ function showErr(id, msg) {
 function clearErr(id) {
   const el = document.getElementById(id);
   if (el) el.textContent = '';
-  // also remove red border from sibling input
   const input = el && el.previousElementSibling;
   if (input) input.classList.remove('error');
 }
@@ -397,7 +367,7 @@ function markError(inputId, errId, msg) {
   if (input) input.classList.add('error');
   showErr(errId, msg);
 }
-// known valid TLDs — covers 99% of real emails
+
 const VALID_TLDS = new Set([
   'com','net','org','edu','gov','io','co','in','uk','us','ca','au','de','fr',
   'jp','cn','br','mx','ru','it','es','nl','se','no','dk','fi','pl','pt','be',
@@ -407,7 +377,6 @@ const VALID_TLDS = new Set([
   'email','mail','cloud','digital','agency','studio','design','blog','page'
 ]);
 
-// known real email providers — anything else is blocked
 const KNOWN_PROVIDERS = new Set([
   'gmail.com','yahoo.com','outlook.com','hotmail.com','live.com','icloud.com',
   'me.com','mac.com','protonmail.com','proton.me','zoho.com','aol.com',
@@ -453,7 +422,6 @@ function getEmailError(email) {
   return 'Invalid email format — e.g. name@gmail.com';
 }
 
-// ── Sign In ───────────────────────────────────────────────────────────────────
 function handleSignIn() {
   clearAllErrors();
   const email = document.getElementById('signin-email').value.trim();
@@ -467,7 +435,6 @@ function handleSignIn() {
     markError('signin-email', 'signin-email-err', getEmailError(email));
     valid = false;
   }
-
   if (!pass) {
     markError('signin-password', 'signin-pass-err', 'Password is required.');
     valid = false;
@@ -475,7 +442,6 @@ function handleSignIn() {
     markError('signin-password', 'signin-pass-err', 'Password must be at least 6 characters.');
     valid = false;
   }
-
   if (!valid) return;
 
   const user = users.find(u => u.email === email.toLowerCase());
@@ -487,13 +453,11 @@ function handleSignIn() {
     markError('signin-password', 'signin-pass-err', 'Incorrect password. Try again.');
     return;
   }
-
   closeModal();
   setLoggedInUser(user);
   showToast('✅', `Welcome back, ${user.name}!`);
 }
 
-// ── Sign Up ───────────────────────────────────────────────────────────────────
 function handleSignUp() {
   clearAllErrors();
   const name  = document.getElementById('signup-name').value.trim();
@@ -505,7 +469,6 @@ function handleSignUp() {
     markError('signup-name', 'signup-name-err', 'Full name is required.');
     valid = false;
   }
-
   if (!email) {
     markError('signup-email', 'signup-email-err', 'Email is required.');
     valid = false;
@@ -516,7 +479,6 @@ function handleSignUp() {
     markError('signup-email', 'signup-email-err', 'An account with this email already exists.');
     valid = false;
   }
-
   if (!pass) {
     markError('signup-password', 'signup-pass-err', 'Password is required.');
     valid = false;
@@ -524,7 +486,6 @@ function handleSignUp() {
     markError('signup-password', 'signup-pass-err', 'Password must be at least 6 characters.');
     valid = false;
   }
-
   if (!valid) return;
 
   const newUser = { name, email: email.toLowerCase(), password: pass };
@@ -535,7 +496,6 @@ function handleSignUp() {
   showToast('🚀', `Account created! Welcome, ${name}!`);
 }
 
-// ── Nav user state ────────────────────────────────────────────────────────────
 function setLoggedInUser(user) {
   document.getElementById('nav-auth-btn').style.display = 'none';
   const navUser = document.getElementById('nav-user');

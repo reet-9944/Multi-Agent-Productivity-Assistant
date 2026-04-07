@@ -9,7 +9,6 @@ from pydantic import BaseModel
 from typing import Optional, List
 import google.generativeai as genai
 
-# ── Init ──────────────────────────────────────────────────────────────────────
 app = FastAPI(title="NEXUS AI", version="1.0.0")
 
 app.add_middleware(
@@ -26,7 +25,6 @@ if GOOGLE_API_KEY:
 else:
     model = None
 
-# ── In-memory store (replace with DB for production) ─────────────────────────
 store = {
     "tasks": [],
     "notes": [],
@@ -34,7 +32,6 @@ store = {
     "knowledge": [],
 }
 
-# ── Schemas ───────────────────────────────────────────────────────────────────
 class Task(BaseModel):
     name: str
     priority: Optional[str] = "medium"
@@ -57,7 +54,6 @@ class KnowledgeItem(BaseModel):
 class AICommand(BaseModel):
     command: str
 
-# ── Serve frontend ────────────────────────────────────────────────────────────
 @app.get("/")
 def serve_frontend():
     return FileResponse("index.html")
@@ -70,12 +66,10 @@ def serve_css():
 def serve_js():
     return FileResponse("script.js", media_type="application/javascript")
 
-# ── Health check ──────────────────────────────────────────────────────────────
 @app.get("/health")
 def health():
     return {"status": "ok", "agents": 6, "gemini": bool(model)}
 
-# ── Task Agent ────────────────────────────────────────────────────────────────
 @app.post("/add-task")
 def add_task(task: Task):
     item = {
@@ -106,7 +100,6 @@ def delete_task(task_id: int):
     store["tasks"] = [t for t in store["tasks"] if t["id"] != task_id]
     return {"success": True}
 
-# ── Notes Agent ───────────────────────────────────────────────────────────────
 @app.post("/add-note")
 def add_note(note: Note):
     item = {
@@ -123,7 +116,6 @@ def add_note(note: Note):
 def get_notes():
     return {"notes": store["notes"], "total": len(store["notes"])}
 
-# ── Calendar Agent ────────────────────────────────────────────────────────────
 @app.post("/add-event")
 def add_event(event: Event):
     item = {
@@ -140,7 +132,6 @@ def add_event(event: Event):
 def get_events():
     return {"events": store["events"], "total": len(store["events"])}
 
-# ── Knowledge Agent ───────────────────────────────────────────────────────────
 @app.post("/add-knowledge")
 def add_knowledge(item: KnowledgeItem):
     entry = {
@@ -157,10 +148,8 @@ def add_knowledge(item: KnowledgeItem):
 def get_knowledge():
     return {"knowledge": store["knowledge"], "total": len(store["knowledge"])}
 
-# ── Weather Agent ─────────────────────────────────────────────────────────────
 @app.get("/weather")
 def get_weather():
-    # Static mock — swap with real weather API (OpenWeatherMap etc.) if needed
     return {
         "temp": "24°C",
         "condition": "Partly Cloudy",
@@ -170,12 +159,10 @@ def get_weather():
         "icon": "⛅",
     }
 
-# ── Router Agent (Gemini powered) ─────────────────────────────────────────────
 @app.post("/ai-command")
 async def ai_command(body: AICommand):
     cmd = body.command.lower().strip()
 
-    # Rule-based routing first (fast, no API cost)
     if cmd.startswith("add task "):
         name = body.command[9:]
         result = add_task(Task(name=name))
@@ -205,7 +192,6 @@ async def ai_command(body: AICommand):
         data = get_notes()
         return {"agent": "NotesAgent", "response": f"📝 {data['total']} notes stored.", "data": data}
 
-    # Fallback to Gemini for anything else
     if model:
         context = f"""You are NEXUS, a multi-agent AI productivity assistant.
 Available agents: Task Agent, Notes Agent, Calendar Agent, Knowledge Agent, Weather Agent.

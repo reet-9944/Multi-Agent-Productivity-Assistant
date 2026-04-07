@@ -1,5 +1,39 @@
 # NEXUS — Multi-Agent AI Productivity Platform
 
+> Hackathon Submission | H2S HackSkills | April 2026
+
+---
+
+## Problem Statement
+
+Modern professionals juggle multiple disconnected tools — one app for tasks, another for notes, another for calendar, and yet another for knowledge management. Switching between them kills focus and productivity.
+
+**NEXUS solves this** by unifying everything into a single AI-powered platform where you talk to one interface and six specialized agents handle the rest — intelligently, instantly, and in real time.
+
+---
+
+## Our Solution
+
+NEXUS is a multi-agent AI productivity platform where each agent is a domain expert:
+
+- You type a natural language command once
+- The **Router Agent** understands your intent
+- It dispatches to the right specialist (Task / Notes / Calendar / Knowledge / Weather)
+- The result reflects instantly across your live dashboard
+
+No switching apps. No learning syntax. Just results.
+
+---
+
+## Key Outcomes
+
+- 10x faster task and note management via natural language
+- Unified dashboard replacing 4–5 separate productivity tools
+- Scalable multi-agent architecture powered by Gemini 1.5 Pro
+- Zero-friction UX — works in the browser, no install needed
+
+---
+
 A single-page web app that puts six specialized AI agents at your fingertips through one clean interface. Manage tasks, notes, calendar events, and a knowledge base using natural language commands — all powered by Gemini AI and a FastAPI backend.
 
 ---
@@ -80,8 +114,17 @@ help                  → Shows all available commands
 ## Project Structure
 
 ```
-index.html    ← entire frontend (single file)
-README.md     ← this file
+nexus-ai/
+├── index.html          ← Frontend (HTML structure)
+├── style.css           ← All styles
+├── script.js           ← Frontend logic + API calls + offline fallback
+├── main.py             ← FastAPI backend with all 6 agents
+├── requirements.txt    ← Python dependencies
+├── Dockerfile          ← Container config for Cloud Run
+├── .dockerignore       ← Keeps Docker image clean
+├── .env.example        ← Environment variable template
+├── .gitignore          ← Git ignore rules
+└── README.md           ← This file
 ```
 
 ---

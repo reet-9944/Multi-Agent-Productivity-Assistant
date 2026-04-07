@@ -25,7 +25,12 @@
     <a href="#notes-page">Notes</a>
     <a href="#knowledge-page">Knowledge</a>
   </div>
-  <button class="nav-cta" onclick="openModal('signin')">Sign In</button>
+  <button class="nav-cta" id="nav-auth-btn" onclick="openModal('signin')">Sign In</button>
+  <div class="nav-user" id="nav-user" style="display:none" onclick="handleLogout()">
+    <div class="nav-avatar" id="nav-avatar"></div>
+    <span class="nav-username" id="nav-username"></span>
+    <span class="nav-logout">↩</span>
+  </div>
 </nav>
 
 <!-- AUTH MODAL -->

@@ -397,8 +397,60 @@ function markError(inputId, errId, msg) {
   if (input) input.classList.add('error');
   showErr(errId, msg);
 }
+// known valid TLDs — covers 99% of real emails
+const VALID_TLDS = new Set([
+  'com','net','org','edu','gov','io','co','in','uk','us','ca','au','de','fr',
+  'jp','cn','br','mx','ru','it','es','nl','se','no','dk','fi','pl','pt','be',
+  'ch','at','nz','sg','hk','ae','sa','za','ng','ke','gh','pk','bd','lk','np',
+  'info','biz','app','dev','ai','tech','online','store','shop','site','web',
+  'me','tv','cc','xyz','pro','inc','ltd','llc','club','live','news','media',
+  'email','mail','cloud','digital','agency','studio','design','blog','page'
+]);
+
+// known real email providers — anything else is blocked
+const KNOWN_PROVIDERS = new Set([
+  'gmail.com','yahoo.com','outlook.com','hotmail.com','live.com','icloud.com',
+  'me.com','mac.com','protonmail.com','proton.me','zoho.com','aol.com',
+  'yandex.com','yandex.ru','mail.com','gmx.com','gmx.net','fastmail.com',
+  'tutanota.com','hey.com','pm.me','rediffmail.com','yahoo.in','yahoo.co.in',
+  'yahoo.co.uk','yahoo.co.jp','outlook.in','hotmail.co.uk','hotmail.in',
+  'msn.com','windowslive.com','live.in','live.co.uk','googlemail.com'
+]);
+
 function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!email || /\s/.test(email)) return false;
+  const atCount = (email.match(/@/g) || []).length;
+  if (atCount !== 1) return false;
+  const [local, domain] = email.split('@');
+  if (!local || local.length < 1) return false;
+  if (!domain || !domain.includes('.')) return false;
+  const parts = domain.split('.');
+  if (parts.length < 2) return false;
+  const tld = parts[parts.length - 1].toLowerCase();
+  if (!tld || tld.length < 2) return false;
+  if (!VALID_TLDS.has(tld)) return false;
+  if (!KNOWN_PROVIDERS.has(domain.toLowerCase())) return false;
+  if (!/^[a-zA-Z0-9._%+\-]+$/.test(local)) return false;
+  return true;
+}
+
+function getEmailError(email) {
+  if (!email) return 'Email is required.';
+  if (/\s/.test(email)) return 'Email cannot contain spaces.';
+  if (!email.includes('@')) return 'Missing "@" — e.g. name@gmail.com';
+  const atCount = (email.match(/@/g) || []).length;
+  if (atCount > 1) return 'Email can only have one "@".';
+  const [local, domain] = email.split('@');
+  if (!local) return 'Missing username before "@".';
+  if (!domain) return 'Missing domain — e.g. gmail.com';
+  if (!domain.includes('.')) return 'Domain must have a "." — e.g. gmail.com';
+  const parts = domain.split('.');
+  const tld = parts[parts.length - 1].toLowerCase();
+  if (!tld || tld.length < 2) return 'Invalid domain extension.';
+  if (!VALID_TLDS.has(tld)) return `".${tld}" is not a recognised domain extension.`;
+  if (!KNOWN_PROVIDERS.has(domain.toLowerCase())) return `"${domain}" is not a recognised email provider. Use gmail.com, yahoo.com, outlook.com etc.`;
+  if (!/^[a-zA-Z0-9._%+\-]+$/.test(local)) return 'Email contains invalid characters.';
+  return 'Invalid email format — e.g. name@gmail.com';
 }
 
 // ── Sign In ───────────────────────────────────────────────────────────────────
@@ -412,7 +464,7 @@ function handleSignIn() {
     markError('signin-email', 'signin-email-err', 'Email is required.');
     valid = false;
   } else if (!isValidEmail(email)) {
-    markError('signin-email', 'signin-email-err', 'Invalid email — must contain @ and a domain.');
+    markError('signin-email', 'signin-email-err', getEmailError(email));
     valid = false;
   }
 
@@ -428,16 +480,16 @@ function handleSignIn() {
 
   const user = users.find(u => u.email === email.toLowerCase());
   if (!user) {
-    markError('signin-email', 'signin-email-err', 'No account found with this email.');
-    showErr('signin-form-err', '');
+    markError('signin-email', 'signin-email-err', 'No account found with this email. Sign up first.');
     return;
   }
   if (user.password !== pass) {
-    markError('signin-password', 'signin-pass-err', 'Incorrect password.');
+    markError('signin-password', 'signin-pass-err', 'Incorrect password. Try again.');
     return;
   }
 
   closeModal();
+  setLoggedInUser(user);
   showToast('✅', `Welcome back, ${user.name}!`);
 }
 
@@ -458,7 +510,7 @@ function handleSignUp() {
     markError('signup-email', 'signup-email-err', 'Email is required.');
     valid = false;
   } else if (!isValidEmail(email)) {
-    markError('signup-email', 'signup-email-err', 'Invalid email — must contain @ and a domain.');
+    markError('signup-email', 'signup-email-err', getEmailError(email));
     valid = false;
   } else if (users.find(u => u.email === email.toLowerCase())) {
     markError('signup-email', 'signup-email-err', 'An account with this email already exists.');
@@ -475,10 +527,27 @@ function handleSignUp() {
 
   if (!valid) return;
 
-  users.push({ name, email: email.toLowerCase(), password: pass });
+  const newUser = { name, email: email.toLowerCase(), password: pass };
+  users.push(newUser);
   saveUsers();
   closeModal();
+  setLoggedInUser(newUser);
   showToast('🚀', `Account created! Welcome, ${name}!`);
+}
+
+// ── Nav user state ────────────────────────────────────────────────────────────
+function setLoggedInUser(user) {
+  document.getElementById('nav-auth-btn').style.display = 'none';
+  const navUser = document.getElementById('nav-user');
+  navUser.style.display = 'flex';
+  document.getElementById('nav-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('nav-username').textContent = user.name.split(' ')[0];
+}
+
+function handleLogout() {
+  document.getElementById('nav-auth-btn').style.display = '';
+  document.getElementById('nav-user').style.display = 'none';
+  showToast('👋', 'Signed out successfully.');
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });

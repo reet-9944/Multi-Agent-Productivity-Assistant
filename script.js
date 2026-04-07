@@ -350,12 +350,18 @@ console.log('%cNEXUS AI — Multi-Agent Productivity','color:#00d4ff;font-size:1
 console.log('%c6 Agents Online ● Gemini Powered ● FastAPI Backend','color:#a855f7;font-family:monospace;');
 
 // ── Auth Modal ────────────────────────────────────────────────────────────────
+// Simple in-memory user store (persisted to localStorage)
+const users = JSON.parse(localStorage.getItem('nexus_users') || '[]');
+
+function saveUsers() { localStorage.setItem('nexus_users', JSON.stringify(users)); }
+
 function openModal(type) {
   document.getElementById('auth-modal').classList.add('open');
   switchModal(type);
 }
 function closeModal() {
   document.getElementById('auth-modal').classList.remove('open');
+  clearAllErrors();
 }
 function closeModalOutside(e) {
   if (e.target.id === 'auth-modal') closeModal();
@@ -363,21 +369,185 @@ function closeModalOutside(e) {
 function switchModal(type) {
   document.getElementById('modal-signin').style.display = type === 'signin' ? 'block' : 'none';
   document.getElementById('modal-signup').style.display = type === 'signup' ? 'block' : 'none';
+  clearAllErrors();
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = msg;
+}
+function clearErr(id) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = '';
+  // also remove red border from sibling input
+  const input = el && el.previousElementSibling;
+  if (input) input.classList.remove('error');
+}
+function clearAllErrors() {
+  ['signin-email-err','signin-pass-err','signin-form-err',
+   'signup-name-err','signup-email-err','signup-pass-err'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '';
+  });
+  document.querySelectorAll('.input-field').forEach(el => el.classList.remove('error'));
+}
+function markError(inputId, errId, msg) {
+  const input = document.getElementById(inputId);
+  if (input) input.classList.add('error');
+  showErr(errId, msg);
+}
+// known valid TLDs — covers 99% of real emails
+const VALID_TLDS = new Set([
+  'com','net','org','edu','gov','io','co','in','uk','us','ca','au','de','fr',
+  'jp','cn','br','mx','ru','it','es','nl','se','no','dk','fi','pl','pt','be',
+  'ch','at','nz','sg','hk','ae','sa','za','ng','ke','gh','pk','bd','lk','np',
+  'info','biz','app','dev','ai','tech','online','store','shop','site','web',
+  'me','tv','cc','xyz','pro','inc','ltd','llc','club','live','news','media',
+  'email','mail','cloud','digital','agency','studio','design','blog','page'
+]);
+
+// known real email providers — anything else is blocked
+const KNOWN_PROVIDERS = new Set([
+  'gmail.com','yahoo.com','outlook.com','hotmail.com','live.com','icloud.com',
+  'me.com','mac.com','protonmail.com','proton.me','zoho.com','aol.com',
+  'yandex.com','yandex.ru','mail.com','gmx.com','gmx.net','fastmail.com',
+  'tutanota.com','hey.com','pm.me','rediffmail.com','yahoo.in','yahoo.co.in',
+  'yahoo.co.uk','yahoo.co.jp','outlook.in','hotmail.co.uk','hotmail.in',
+  'msn.com','windowslive.com','live.in','live.co.uk','googlemail.com'
+]);
+
+function isValidEmail(email) {
+  if (!email || /\s/.test(email)) return false;
+  const atCount = (email.match(/@/g) || []).length;
+  if (atCount !== 1) return false;
+  const [local, domain] = email.split('@');
+  if (!local || local.length < 1) return false;
+  if (!domain || !domain.includes('.')) return false;
+  const parts = domain.split('.');
+  if (parts.length < 2) return false;
+  const tld = parts[parts.length - 1].toLowerCase();
+  if (!tld || tld.length < 2) return false;
+  if (!VALID_TLDS.has(tld)) return false;
+  if (!KNOWN_PROVIDERS.has(domain.toLowerCase())) return false;
+  if (!/^[a-zA-Z0-9._%+\-]+$/.test(local)) return false;
+  return true;
+}
+
+function getEmailError(email) {
+  if (!email) return 'Email is required.';
+  if (/\s/.test(email)) return 'Email cannot contain spaces.';
+  if (!email.includes('@')) return 'Missing "@" — e.g. name@gmail.com';
+  const atCount = (email.match(/@/g) || []).length;
+  if (atCount > 1) return 'Email can only have one "@".';
+  const [local, domain] = email.split('@');
+  if (!local) return 'Missing username before "@".';
+  if (!domain) return 'Missing domain — e.g. gmail.com';
+  if (!domain.includes('.')) return 'Domain must have a "." — e.g. gmail.com';
+  const parts = domain.split('.');
+  const tld = parts[parts.length - 1].toLowerCase();
+  if (!tld || tld.length < 2) return 'Invalid domain extension.';
+  if (!VALID_TLDS.has(tld)) return `".${tld}" is not a recognised domain extension.`;
+  if (!KNOWN_PROVIDERS.has(domain.toLowerCase())) return `"${domain}" is not a recognised email provider. Use gmail.com, yahoo.com, outlook.com etc.`;
+  if (!/^[a-zA-Z0-9._%+\-]+$/.test(local)) return 'Email contains invalid characters.';
+  return 'Invalid email format — e.g. name@gmail.com';
+}
+
+// ── Sign In ───────────────────────────────────────────────────────────────────
 function handleSignIn() {
+  clearAllErrors();
   const email = document.getElementById('signin-email').value.trim();
-  const pass  = document.getElementById('signin-password').value.trim();
-  if (!email || !pass) { showToast('⚠️', 'Please fill in all fields'); return; }
+  const pass  = document.getElementById('signin-password').value;
+  let valid = true;
+
+  if (!email) {
+    markError('signin-email', 'signin-email-err', 'Email is required.');
+    valid = false;
+  } else if (!isValidEmail(email)) {
+    markError('signin-email', 'signin-email-err', getEmailError(email));
+    valid = false;
+  }
+
+  if (!pass) {
+    markError('signin-password', 'signin-pass-err', 'Password is required.');
+    valid = false;
+  } else if (pass.length < 6) {
+    markError('signin-password', 'signin-pass-err', 'Password must be at least 6 characters.');
+    valid = false;
+  }
+
+  if (!valid) return;
+
+  const user = users.find(u => u.email === email.toLowerCase());
+  if (!user) {
+    markError('signin-email', 'signin-email-err', 'No account found with this email. Sign up first.');
+    return;
+  }
+  if (user.password !== pass) {
+    markError('signin-password', 'signin-pass-err', 'Incorrect password. Try again.');
+    return;
+  }
+
   closeModal();
-  showToast('✅', `Welcome back, ${email.split('@')[0]}!`);
+  setLoggedInUser(user);
+  showToast('✅', `Welcome back, ${user.name}!`);
 }
+
+// ── Sign Up ───────────────────────────────────────────────────────────────────
 function handleSignUp() {
+  clearAllErrors();
   const name  = document.getElementById('signup-name').value.trim();
   const email = document.getElementById('signup-email').value.trim();
-  const pass  = document.getElementById('signup-password').value.trim();
-  if (!name || !email || !pass) { showToast('⚠️', 'Please fill in all fields'); return; }
+  const pass  = document.getElementById('signup-password').value;
+  let valid = true;
+
+  if (!name) {
+    markError('signup-name', 'signup-name-err', 'Full name is required.');
+    valid = false;
+  }
+
+  if (!email) {
+    markError('signup-email', 'signup-email-err', 'Email is required.');
+    valid = false;
+  } else if (!isValidEmail(email)) {
+    markError('signup-email', 'signup-email-err', getEmailError(email));
+    valid = false;
+  } else if (users.find(u => u.email === email.toLowerCase())) {
+    markError('signup-email', 'signup-email-err', 'An account with this email already exists.');
+    valid = false;
+  }
+
+  if (!pass) {
+    markError('signup-password', 'signup-pass-err', 'Password is required.');
+    valid = false;
+  } else if (pass.length < 6) {
+    markError('signup-password', 'signup-pass-err', 'Password must be at least 6 characters.');
+    valid = false;
+  }
+
+  if (!valid) return;
+
+  const newUser = { name, email: email.toLowerCase(), password: pass };
+  users.push(newUser);
+  saveUsers();
   closeModal();
+  setLoggedInUser(newUser);
   showToast('🚀', `Account created! Welcome, ${name}!`);
 }
-// Close modal on Escape key
+
+// ── Nav user state ────────────────────────────────────────────────────────────
+function setLoggedInUser(user) {
+  document.getElementById('nav-auth-btn').style.display = 'none';
+  const navUser = document.getElementById('nav-user');
+  navUser.style.display = 'flex';
+  document.getElementById('nav-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('nav-username').textContent = user.name.split(' ')[0];
+}
+
+function handleLogout() {
+  document.getElementById('nav-auth-btn').style.display = '';
+  document.getElementById('nav-user').style.display = 'none';
+  showToast('👋', 'Signed out successfully.');
+}
+
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });

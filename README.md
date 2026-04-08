@@ -1,113 +1,74 @@
 # NEXUS — Multi-Agent AI Productivity Platform
 
-> Hackathon Submission | H2S HackSkills | April 2026
+---
+
+## What is NEXUS?
+
+Most people I know use at least 4 or 5 different apps just to stay organized — Todoist for tasks, Notion for notes, Google Calendar for events, some random app for weather, and maybe a wiki for knowledge. Every time you switch between them, you lose context and momentum.
+
+NEXUS is my attempt to fix that. It's a single web platform where you just type what you need in plain English, and six specialized AI agents take care of the rest. One interface. One dashboard. Everything in sync.
+
+The idea is simple — instead of building one giant AI that tries to do everything, each agent is a specialist. The Router Agent reads your intent and hands it off to whoever is best suited. It's the same reason a hospital has different doctors instead of one person doing everything.
 
 ---
 
-## Problem Statement
+## The Problem It Solves
 
-Modern professionals juggle multiple disconnected tools — one app for tasks, another for notes, another for calendar, and yet another for knowledge management. Switching between them kills focus and productivity.
+- You waste time switching between apps that don't talk to each other
+- Most productivity tools have steep learning curves or rigid workflows
+- AI assistants are either too generic or locked to one domain
+- There's no single place that shows you tasks, notes, events, and knowledge together
 
-**NEXUS solves this** by unifying everything into a single AI-powered platform where you talk to one interface and six specialized agents handle the rest — intelligently, instantly, and in real time.
-
----
-
-## Our Solution
-
-NEXUS is a multi-agent AI productivity platform where each agent is a domain expert:
-
-- You type a natural language command once
-- The **Router Agent** understands your intent
-- It dispatches to the right specialist (Task / Notes / Calendar / Knowledge / Weather)
-- The result reflects instantly across your live dashboard
-
-No switching apps. No learning syntax. Just results.
+NEXUS addresses all of this by giving you a conversational interface backed by a real multi-agent system, with a live dashboard that reflects everything in one view.
 
 ---
 
-## Key Outcomes
+## How It Works
 
-- 10x faster task and note management via natural language
-- Unified dashboard replacing 4–5 separate productivity tools
-- Scalable multi-agent architecture powered by Gemini 1.5 Pro
-- Zero-friction UX — works in the browser, no install needed
+When you type a command like `add task finish the report by Friday`, here's what actually happens:
+
+1. The frontend sends your message to `POST /ai-command` on the FastAPI backend
+2. The Router Agent parses the intent using rule-based matching first (fast, no API cost)
+3. If it's a known command, it routes directly to the right agent — Task, Notes, Calendar, Knowledge, or Weather
+4. If it's ambiguous or conversational, it falls back to Gemini 1.5 Pro for a smart response
+5. The result comes back to the frontend, updates the UI, and syncs the dashboard
+
+The frontend also has a full offline fallback — if the backend isn't reachable, everything still works using local state in the browser.
 
 ---
 
-A single-page web app that puts six specialized AI agents at your fingertips through one clean interface. Manage tasks, notes, calendar events, and a knowledge base using natural language commands — all powered by Gemini AI and a FastAPI backend.
+## The 6 Agents
 
----
-
-## Features
-
-### 6 Specialized Agents
-
-| Agent | Endpoint | What it does |
+| Agent | Endpoint | Responsibility |
 |---|---|---|
-| Task Agent | `POST /add-task` | Create, prioritize, and track tasks |
-| Notes Agent | `POST /add-note` | Capture and retrieve notes |
-| Calendar Agent | `POST /add-event` | Schedule events with natural language |
-| Knowledge Agent | `POST /add-knowledge` | Build a queryable knowledge base |
-| Weather Agent | `GET /weather` | Real-time weather in your workflow |
-| Router Agent | `POST /ai-command` | Routes commands to the right specialist |
-
-### Core Sections
-
-- **AI Chat** — Natural language interface connected to all 6 agents
-- **Live Dashboard** — Real-time overview of tasks, notes, events, weather, and knowledge
-- **Task Manager** — Add, complete, and delete tasks with priority and due date
-- **Notes Manager** — Create and browse notes in a card grid
-- **Knowledge Base** — Store tagged knowledge items and retrieve them instantly
+| Router Agent | `POST /ai-command` | Parses intent, dispatches to the right specialist |
+| Task Agent | `POST /add-task` | Creates, tracks, and manages tasks with priority + due date |
+| Notes Agent | `POST /add-note` | Saves and organizes notes with timestamps |
+| Calendar Agent | `POST /add-event` | Schedules events with date and time |
+| Knowledge Agent | `POST /add-knowledge` | Stores tagged knowledge items for later retrieval |
+| Weather Agent | `GET /weather` | Returns current weather data for the dashboard |
 
 ---
 
 ## Tech Stack
 
-- **Frontend** — Vanilla HTML/CSS/JS, Three.js (hero 3D animation)
-- **Fonts** — Syne, Space Mono, DM Sans (Google Fonts)
-- **Backend (expected)** — FastAPI + Google Gemini API (`google-generativeai`)
-- **AI Model** — Gemini 1.5 Pro
+**Frontend**
+- Vanilla HTML, CSS, JavaScript — no framework, no build step
+- Three.js for the 3D animated hero section
+- Google Fonts — Syne (display), Space Mono (mono), DM Sans (body)
+- LocalStorage for auth and offline state persistence
 
----
+**Backend**
+- Python 3.11 with FastAPI
+- Uvicorn as the ASGI server
+- Google Generative AI SDK (`google-generativeai`) — Gemini 1.5 Pro
+- Pydantic v2 for request validation
+- In-memory state (easily swappable with a real database)
 
-## Getting Started
-
-### Frontend only
-
-Just open `index.html` in a browser — no build step required. The UI runs fully client-side with a local state simulation.
-
-### With FastAPI backend
-
-1. Install dependencies:
-   ```bash
-   pip install fastapi uvicorn google-generativeai
-   ```
-
-2. Set your Gemini API key:
-   ```bash
-   export GOOGLE_API_KEY=your_key_here
-   ```
-
-3. Run the server:
-   ```bash
-   uvicorn main:app --reload
-   ```
-
-4. Open `index.html` and point the chat commands at your running API.
-
----
-
-## Chat Commands
-
-```
-add task [name]       → Creates a new task via Task Agent
-add note [content]    → Saves a note via Notes Agent
-schedule [event]      → Adds a calendar event via Calendar Agent
-show tasks            → Lists all active tasks
-show notes            → Shows note count
-weather               → Fetches current weather
-help                  → Shows all available commands
-```
+**Infrastructure**
+- Docker for containerization
+- Google Cloud Run for serverless deployment
+- Environment variables for secrets management
 
 ---
 
@@ -115,68 +76,200 @@ help                  → Shows all available commands
 
 ```
 nexus-ai/
-├── index.html          ← Frontend (HTML structure)
-├── style.css           ← All styles
-├── script.js           ← Frontend logic + API calls + offline fallback
-├── main.py             ← FastAPI backend with all 6 agents
-├── requirements.txt    ← Python dependencies
-├── Dockerfile          ← Container config for Cloud Run
-├── .dockerignore       ← Keeps Docker image clean
-├── .env.example        ← Environment variable template
-├── .gitignore          ← Git ignore rules
-└── README.md           ← This file
+├── index.html          ← All HTML — structure and modal markup
+├── style.css           ← Complete stylesheet, responsive, dark theme
+├── script.js           ← Frontend logic, API calls, auth, offline fallback
+├── main.py             ← FastAPI app — all 6 agent endpoints
+├── requirements.txt    ← Pinned Python dependencies
+├── Dockerfile          ← Production-ready container config
+├── .dockerignore       ← Keeps the image lean
+├── .env.example        ← Template for environment variables
+├── .gitignore          ← Keeps secrets out of git
+└── README.md           ← You're reading it
 ```
 
 ---
 
-## Deployment — Google Cloud Run
+## Local Setup — Step by Step
 
-This project is deployed on **Google Cloud Run** for public access.
+### Prerequisites
 
-### Live Demo
-> 🔗 **Cloud Run URL:** `https://nexus-ai-XXXXXXXX-uc.a.run.app` ← replace with your deployed URL
+Make sure you have these installed before starting:
 
-### Deploy to Cloud Run (steps)
+- Python 3.10 or higher — check with `python --version`
+- pip — comes with Python
+- A Gemini API key — get one free at [aistudio.google.com](https://aistudio.google.com)
 
-1. **Containerize the app** — create a `Dockerfile`:
-   ```dockerfile
-   FROM python:3.11-slim
-   WORKDIR /app
-   COPY . .
-   RUN pip install fastapi uvicorn google-generativeai
-   EXPOSE 8080
-   CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
-   ```
+### Step 1 — Clone the repo
 
-2. **Build and push the image:**
-   ```bash
-   gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/nexus-ai
-   ```
+```bash
+git clone https://github.com/YOUR_USERNAME/nexus-ai.git
+cd nexus-ai
+```
 
-3. **Deploy to Cloud Run:**
-   ```bash
-   gcloud run deploy nexus-ai \
-     --image gcr.io/YOUR_PROJECT_ID/nexus-ai \
-     --platform managed \
-     --region us-central1 \
-     --allow-unauthenticated \
-     --set-env-vars GOOGLE_API_KEY=your_key_here
-   ```
+### Step 2 — Install Python dependencies
 
-4. Copy the generated service URL and use it as your **Cloud Run Deployment Link**.
+```bash
+pip install -r requirements.txt
+```
+
+This installs FastAPI, Uvicorn, the Gemini SDK, and Pydantic. Should take under a minute.
+
+### Step 3 — Set your API key
+
+Copy the example env file and add your key:
+
+```bash
+# Windows
+copy .env.example .env
+
+# Mac / Linux
+cp .env.example .env
+```
+
+Open `.env` and replace the placeholder:
+
+```
+GOOGLE_API_KEY=your_actual_gemini_key_here
+```
+
+### Step 4 — Start the server
+
+```bash
+python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+### Step 5 — Open the app
+
+Go to `http://127.0.0.1:8000` in your browser. That's it.
+
+The server serves the frontend directly, so there's no separate step to open the HTML file.
+
+### Running without a Gemini key
+
+The app works fine without a key — the chat will use rule-based responses instead of Gemini. You'll see `"gemini": false` in the health check at `http://127.0.0.1:8000/health`.
 
 ---
 
-## Hackathon Submission Links
+## Chat Commands
 
-| Item | Link |
-|---|---|
-| Cloud Run Deployment | `https://nexus-ai-XXXXXXXX-uc.a.run.app` |
-| GitHub Repository | `https://github.com/YOUR_USERNAME/nexus-ai` |
-| Demo Video | `https://youtu.be/YOUR_VIDEO_ID` |
-| Project PPT | `https://drive.google.com/YOUR_PPT_LINK` |
+Once the app is open, try these in the chat:
 
-> Replace all placeholder links above with your actual submission links before submitting.
+```
+add task [name]          creates a task, routed to Task Agent
+add note [content]       saves a note, routed to Notes Agent
+schedule [event name]    adds a calendar event
+show tasks               lists all your active tasks
+show notes               shows how many notes you have
+weather                  pulls current weather data
+help                     shows all available commands
+```
+
+Anything outside these patterns gets sent to Gemini for a natural language response.
+
+---
+
+## API Reference
+
+All endpoints are available at `http://127.0.0.1:8000` when running locally.
+
+| Method | Endpoint | Body | Description |
+|---|---|---|---|
+| GET | `/` | — | Serves the frontend |
+| GET | `/health` | — | Server + Gemini status |
+| POST | `/ai-command` | `{ "command": "..." }` | Main router — handles all natural language |
+| POST | `/add-task` | `{ "name", "priority", "due" }` | Add a task directly |
+| GET | `/tasks` | — | Get all tasks |
+| PATCH | `/tasks/{id}/toggle` | — | Toggle task done/undone |
+| DELETE | `/tasks/{id}` | — | Delete a task |
+| POST | `/add-note` | `{ "title", "content" }` | Save a note |
+| GET | `/notes` | — | Get all notes |
+| POST | `/add-event` | `{ "title", "date", "time" }` | Add a calendar event |
+| GET | `/events` | — | Get all events |
+| POST | `/add-knowledge` | `{ "title", "content", "tags" }` | Store a knowledge item |
+| GET | `/knowledge` | — | Get all knowledge items |
+| GET | `/weather` | — | Get current weather |
+
+---
+
+## Deployment on Google Cloud Run
+
+### Prerequisites
+
+- Google Cloud account with billing enabled
+- `gcloud` CLI installed and authenticated — [install guide](https://cloud.google.com/sdk/docs/install)
+- Docker installed locally
+
+### Step 1 — Authenticate with Google Cloud
+
+```bash
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+```
+
+### Step 2 — Enable required APIs
+
+```bash
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com
+```
+
+### Step 3 — Build and push the container
+
+```bash
+gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/nexus-ai
+```
+
+### Step 4 — Deploy to Cloud Run
+
+```bash
+gcloud run deploy nexus-ai \
+  --image gcr.io/YOUR_PROJECT_ID/nexus-ai \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars GOOGLE_API_KEY=your_key_here
+```
+
+### Step 5 — Get your URL
+
+Cloud Run will print a service URL like `https://nexus-ai-abc123-uc.a.run.app`. That's your live deployment link.
+
+---
+
+## Auth System
+
+NEXUS has a frontend auth system built with localStorage:
+
+- Sign up with name, email, and password
+- Email is validated against a whitelist of real providers (gmail, yahoo, outlook, icloud, protonmail, etc.)
+- Passwords must be at least 6 characters
+- After login, the nav shows your name and avatar initial
+- Clicking the avatar logs you out
+- All accounts persist in the browser's localStorage
+
+This is a frontend-only auth system — suitable for demos and hackathons. For production, replace it with a proper backend auth system (JWT + database).
+
+---
+
+## Future Scope
+
+There's a lot of room to grow this. Here's what I'd build next:
+
+**Real database** — Right now state lives in memory and resets on server restart. Swapping in PostgreSQL or MongoDB would make it production-ready.
+
+**Persistent auth** — Move auth to the backend with JWT tokens, bcrypt password hashing, and a proper user table.
+
+**Agent memory** — Give each agent context about past interactions so it can say things like "you usually schedule standups at 10am" or "you have 3 overdue tasks".
+
+**Voice input** — The Web Speech API would let you talk to the agents instead of typing, which is a natural fit for a productivity assistant.
+
+**Mobile app** — The UI is responsive but a native mobile app with push notifications for task reminders would be genuinely useful.
+
+**Real weather API** — Replace the mock weather data with a live call to OpenWeatherMap or WeatherAPI based on the user's location.
+
+**Collaboration** — Multi-user workspaces where a team shares the same task board and knowledge base.
+
+**Gemini function calling** — Instead of rule-based routing, use Gemini's native function calling to let the model decide which agent to invoke and with what parameters.
 
 ---
 

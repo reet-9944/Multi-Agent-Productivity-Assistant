@@ -80,7 +80,6 @@ body {
   border-radius: 2px;
 }
 
-/* NAV */
 nav {
   position: fixed;
   top: 0;
@@ -140,7 +139,6 @@ nav {
   transform: translateY(-1px);
 }
 
-/* logged-in user pill in nav */
 .nav-user {
   display: flex; align-items: center; gap: 10px;
   border: 1px solid var(--border2); border-radius: 100px;
@@ -162,7 +160,6 @@ nav {
 .nav-logout { font-size: 13px; color: var(--text3); margin-left: 4px; transition: color 0.3s; }
 .nav-user:hover .nav-logout { color: var(--pink); }
 
-/* AUTH MODAL */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 9000;
   background: rgba(2,4,10,0.85);
@@ -206,7 +203,6 @@ nav {
 .modal-switch span { color: var(--cyan); cursor: none; }
 .modal-switch span:hover { text-decoration: underline; }
 
-/* field errors */
 .field-err {
   display: block; font-size: 11px; color: var(--pink);
   font-family: var(--font-mono); margin-top: 5px;
@@ -218,7 +214,6 @@ nav {
 }
 .input-field.error { border-color: var(--pink); box-shadow: 0 0 0 3px rgba(255,45,120,0.1); }
 
-/* HERO */
 #hero {
   position: relative;
   height: 100vh;
@@ -391,7 +386,6 @@ nav {
   }
 }
 
-/* SECTIONS */
 section {
   padding: 120px 60px;
 }
@@ -427,7 +421,6 @@ section {
   max-width: 600px;
 }
 
-/* FEATURES */
 #features {
   background: var(--bg2);
 }
@@ -500,7 +493,6 @@ section {
   letter-spacing: 1px;
 }
 
-/* HOW IT WORKS */
 .steps {
   display: flex;
   flex-direction: column;
@@ -543,7 +535,6 @@ section {
   font-weight: 300;
 }
 
-/* STATS */
 #stats {
   background: var(--bg2);
   border-top: 1px solid var(--border);
@@ -577,7 +568,6 @@ section {
   margin-top: 8px;
 }
 
-/* ASSISTANT */
 #assistant {
   background: var(--bg2);
 }
@@ -792,7 +782,6 @@ section {
   border-radius: 50%;
 }
 
-/* DASHBOARD */
 #dashboard {
   position: relative;
   overflow: hidden;
@@ -966,7 +955,6 @@ section {
   color: var(--text3);
 }
 
-/* TASKS */
 #tasks-page {
   background: var(--bg2);
 }
@@ -1117,7 +1105,6 @@ select.input-field option {
   opacity: 0.3;
 }
 
-/* NOTES */
 .notes-interface {
   display: grid;
   grid-template-columns: 1fr 1.4fr;
@@ -1183,7 +1170,6 @@ select.input-field option {
   margin-top: 14px;
 }
 
-/* KNOWLEDGE */
 #knowledge-page {
   background: var(--bg2);
 }
@@ -1234,7 +1220,6 @@ select.input-field option {
   color: var(--purple2);
 }
 
-/* CTA */
 #cta {
   text-align: center;
   padding: 120px 60px;
@@ -1275,7 +1260,6 @@ select.input-field option {
   font-weight: 300;
 }
 
-/* FOOTER */
 footer {
   border-top: 1px solid var(--border);
   padding: 48px 60px;
@@ -1312,7 +1296,6 @@ footer {
   color: var(--cyan);
 }
 
-/* TOAST */
 .toast {
   position: fixed;
   bottom: 30px;
@@ -1344,7 +1327,6 @@ footer {
   font-size: 18px;
 }
 
-/* PARTICLES / ORBS */
 .particle {
   position: fixed;
   pointer-events: none;
@@ -1386,7 +1368,6 @@ footer {
   }
 }
 
-/* RESPONSIVE */
 @media (max-width: 1024px) {
   nav {
     padding: 16px 24px;

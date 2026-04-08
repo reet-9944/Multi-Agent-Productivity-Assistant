@@ -265,7 +265,20 @@ renderTasks();
 function renderNotes(){
   const grid=document.getElementById('notes-grid');
   if(!state.notes.length){ grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📝</div>No notes yet.</div>`; return; }
-  grid.innerHTML=state.notes.map(n=>`<div class="note-card"><div class="note-title">${n.title}</div><div class="note-content">${n.content}</div><div class="note-date">${n.date}</div></div>`).join('');
+  grid.innerHTML=state.notes.map(n=>`
+    <div class="note-card">
+      <button class="card-del-btn" onclick="deleteNote(${n.id})">✕</button>
+      <div class="note-title">${n.title}</div>
+      <div class="note-content">${n.content}</div>
+      <div class="note-date">${n.date}</div>
+    </div>`).join('');
+}
+
+async function deleteNote(id){
+  state.notes = state.notes.filter(n => n.id !== id);
+  renderNotes(); updateDashboard();
+  try { await fetch(`/notes/${id}`, {method:'DELETE'}); } catch(e){}
+  showToast('🗑️','Note deleted');
 }
 async function addNote(){
   const title=document.getElementById('note-title').value.trim();
@@ -284,7 +297,20 @@ renderNotes();
 function renderKnowledge(){
   const list=document.getElementById('kb-list');
   if(!state.knowledge.length){ list.innerHTML=`<div class="empty-state"><div class="empty-icon">🧠</div>Knowledge base empty.</div>`; return; }
-  list.innerHTML=state.knowledge.map(k=>`<div class="kb-item"><div class="kb-title">${k.title}</div><div class="kb-content">${k.content}</div><div class="kb-tags">${k.tags.map(tag=>`<span class="kb-tag">${tag}</span>`).join('')}</div></div>`).join('');
+  list.innerHTML=state.knowledge.map(k=>`
+    <div class="kb-item">
+      <button class="card-del-btn" onclick="deleteKnowledge(${k.id})">✕</button>
+      <div class="kb-title">${k.title}</div>
+      <div class="kb-content">${k.content}</div>
+      <div class="kb-tags">${k.tags.map(tag=>`<span class="kb-tag">${tag}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+async function deleteKnowledge(id){
+  state.knowledge = state.knowledge.filter(k => k.id !== id);
+  renderKnowledge(); updateDashboard();
+  try { await fetch(`/knowledge/${id}`, {method:'DELETE'}); } catch(e){}
+  showToast('🗑️','Knowledge item deleted');
 }
 async function addKnowledge(){
   const title=document.getElementById('kb-title').value.trim();

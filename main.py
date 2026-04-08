@@ -1,13 +1,10 @@
 import os
-import json
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
-import google.generativeai as genai
 
 app = FastAPI(title="NEXUS AI", version="1.0.0")
 
@@ -17,13 +14,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
-if GOOGLE_API_KEY:
-    genai.configure(api_key=GOOGLE_API_KEY)
-    model = genai.GenerativeModel("gemini-1.5-pro")
-else:
-    model = None
 
 store = {
     "tasks": [],
@@ -68,7 +58,7 @@ def serve_js():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "agents": 6, "gemini": bool(model)}
+    return {"status": "ok", "agents": 6}
 
 @app.post("/add-task")
 def add_task(task: Task):
@@ -116,6 +106,11 @@ def add_note(note: Note):
 def get_notes():
     return {"notes": store["notes"], "total": len(store["notes"])}
 
+@app.delete("/notes/{note_id}")
+def delete_note(note_id: int):
+    store["notes"] = [n for n in store["notes"] if n["id"] != note_id]
+    return {"success": True}
+
 @app.post("/add-event")
 def add_event(event: Event):
     item = {
@@ -147,6 +142,11 @@ def add_knowledge(item: KnowledgeItem):
 @app.get("/knowledge")
 def get_knowledge():
     return {"knowledge": store["knowledge"], "total": len(store["knowledge"])}
+
+@app.delete("/knowledge/{item_id}")
+def delete_knowledge(item_id: int):
+    store["knowledge"] = [k for k in store["knowledge"] if k["id"] != item_id]
+    return {"success": True}
 
 @app.get("/weather")
 def get_weather():
@@ -191,18 +191,6 @@ async def ai_command(body: AICommand):
     if "show notes" in cmd or "list notes" in cmd:
         data = get_notes()
         return {"agent": "NotesAgent", "response": f"📝 {data['total']} notes stored.", "data": data}
-
-    if model:
-        context = f"""You are NEXUS, a multi-agent AI productivity assistant.
-Available agents: Task Agent, Notes Agent, Calendar Agent, Knowledge Agent, Weather Agent.
-Current data: {json.dumps({k: len(v) for k, v in store.items()})} items stored.
-User command: {body.command}
-Reply helpfully and concisely."""
-        try:
-            resp = model.generate_content(context)
-            return {"agent": "RouterAgent", "response": resp.text, "data": None}
-        except Exception as e:
-            return {"agent": "RouterAgent", "response": f"Gemini error: {str(e)}", "data": None}
 
     return {
         "agent": "RouterAgent",

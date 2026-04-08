@@ -1423,3 +1423,15 @@ footer {
     align-items: center;
   }
 }
+
+.card-del-btn {
+  position: absolute; top: 12px; right: 12px;
+  width: 26px; height: 26px; border-radius: 6px;
+  background: none; border: 1px solid var(--border);
+  color: var(--text3); cursor: none; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; opacity: 0;
+}
+.note-card:hover .card-del-btn,
+.kb-item:hover .card-del-btn { opacity: 1; }
+.card-del-btn:hover { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.08); }

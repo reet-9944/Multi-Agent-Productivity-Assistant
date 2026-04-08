@@ -98,7 +98,6 @@ Make sure you have these installed before starting:
 
 - Python 3.10 or higher — check with `python --version`
 - pip — comes with Python
-- A Gemini API key — get one free at [aistudio.google.com](https://aistudio.google.com)
 
 ### Step 1 — Clone the repo
 
@@ -115,39 +114,17 @@ pip install -r requirements.txt
 
 This installs FastAPI, Uvicorn, the Gemini SDK, and Pydantic. Should take under a minute.
 
-### Step 3 — Set your API key
-
-Copy the example env file and add your key:
-
-```bash
-# Windows
-copy .env.example .env
-
-# Mac / Linux
-cp .env.example .env
-```
-
-Open `.env` and replace the placeholder:
-
-```
-GOOGLE_API_KEY=your_actual_gemini_key_here
-```
-
-### Step 4 — Start the server
+### Step 3 — Start the server
 
 ```bash
 python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-### Step 5 — Open the app
+### Step 4 — Open the app
 
 Go to `http://127.0.0.1:8000` in your browser. That's it.
 
 The server serves the frontend directly, so there's no separate step to open the HTML file.
-
-### Running without a Gemini key
-
-The app works fine without a key — the chat will use rule-based responses instead of Gemini. You'll see `"gemini": false` in the health check at `http://127.0.0.1:8000/health`.
 
 ---
 
@@ -226,8 +203,7 @@ gcloud run deploy nexus-ai \
   --image gcr.io/YOUR_PROJECT_ID/nexus-ai \
   --platform managed \
   --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars GOOGLE_API_KEY=your_key_here
+  --allow-unauthenticated
 ```
 
 ### Step 5 — Get your URL
